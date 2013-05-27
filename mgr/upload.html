@@ -1,0 +1,59 @@
+<html>
+  <head>
+        <style type='text/css'>
+            #dragtohere {
+              width:152px; 
+              height: 152px;
+              margin: 20px auto;
+              border:2pt solid black;
+            }
+        </style>
+      <script src='ddupload.js'></script>
+      <script type='text/javascript'>
+		var rFilter = /^(?:image\/bmp|image\/cis\-cod|image\/gif|image\/ief|image\/jpeg|image\/jpeg|image\/jpeg|image\/pipeg|image\/png|image\/svg\+xml|image\/tiff|image\/x\-cmu\-raster|image\/x\-cmx|image\/x\-icon|image\/x\-portable\-anymap|image\/x\-portable\-bitmap|image\/x\-portable\-graymap|image\/x\-portable\-pixmap|image\/x\-rgb|image\/x\-xbitmap|image\/x\-xpixmap|image\/x\-xwindowdump)$/i;
+		console.log(rFilter.test('bmp'));
+      
+        var postdata_handler = function(file, container)
+        {   /* post data in 'Content-Disposition' */
+            return '{"albumid":"'+ container.id +'","filename":"'+file.name+'"}';
+        };
+        var loadedhandler = function(reader_event, container)
+        {   /* handler on local file loaded */
+            console.log(reader_event.target.file.name);
+        };
+        var progresshandler = function(file, percentage, container)
+        {   /* handler on upload progress */
+            console.log(percentage);
+        };
+        var onupload_success_handler = function(xhr, evt, container)
+        {   /* handler on success upload(status = 200) */
+            console.log(xhr.responseText);
+        };
+        var onupload_failed_handler = function(xhr, evt, container)
+        {   /* handler on failed upload(status != 200) */
+            console.log(xhr.responseText);
+        };
+        
+        window.onload = function(evt) {
+            ddupload.setup(document.getElementById('dragtohere'), {
+                    filetypes : "jpg,png,gif,jpeg",
+                    filelimit : 8*1024*1024,
+                    posturl : "http://localhost:7777/weiyes/upload.action",
+                    postdata_handler : postdata_handler,
+                    loadedhandler : loadedhandler,
+                    progresshandler : progresshandler,
+                    onupload_success_handler : onupload_success_handler,
+                    onupload_failed_handler: onupload_failed_handler,
+                    });
+        };
+      </script>
+  </head>
+  <body>
+    <div id='display-area'>
+      <h2>Drag and Drop Upload Sample</h2>
+      <div id='dragtohere' style="background-color: #fff">Drag and Drop to here</div>
+      <div id='progressbar'></div>
+      <div id='result'></div>
+    </div>
+  </body>
+</html>

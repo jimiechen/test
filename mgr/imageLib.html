@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>图片库</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<link href="../css/mgr.css" rel="stylesheet" type="text/css" />
+	<script src="../scripts/boot.js" type="text/javascript"></script>
+</head>
+
+<script id="users" type="text/template">
+<% if (names.length) { %>
+<ul class="img-wrapper" style="margin: 0pt; display: block; height: 380px; overflow: hidden;">
+	<% names.forEach(function(name){ %>
+	<LI>
+		<DL>
+			<DT>
+				<A hideFocus href="http://www.viivsc.com/Manager/ImageLib.jsp#;">
+					<EM>
+						<IMG title=<%= name %> ondblclick="clickView('367');" onclick=clickImage(this) src="http://localhost:3000/upload/webcallBD测试.jpg" width=120 height=80 imageid="367">
+					</EM>
+				</A>
+			</DT>
+			<DD>
+				<EM>
+					<LABEL>
+						<INPUT id=ImageID_box367 value=367#7SC506%25CD%25E2%25B0%25FC%25D7%25B02.jpg type=checkbox name=ImageID>
+						<%= name %>
+					</LABEL>
+				</EM>
+					<A href="http://www.viivsc.com/Manager/ImageLib.jsp#;">
+						<IMG title=查看 onclick="clickView('367');" alt=view src="../images/Icons/icon_zoomout.gif">
+					</A>
+					<A href="http://www.viivsc.com/Manager/ImageLib.jsp#;">
+						<IMG title=删除 onclick="clickDelete('367');" alt=delete src="../images/Icons/icon_delete15.gif">
+					</A>
+			</DD>
+		</DL>
+	</LI>
+	<% }) %>
+</ul>
+<% } %>
+</script>
+
+<script>
+      onload = function(){
+        var users = document.getElementById('users').innerHTML;
+        var names = ['loki', 'tobi', 'jane'];
+        var html = ejs.render(users, { names: names });
+        document.body.innerHTML = html;
+      }
+ </script>
+ <body>
+ <div class="mini-pager" style="width:500px;background:#f0f3f7;border:solid 1px #ccc;" 
+    totalCount="50" onpagechanged="onPageChanged" sizeList="[12,16]"
+    showPageSize="true" showPageIndex="true" showPageInfo="true" >        
+</div> 
+<script type="text/javascript">
+    function onPageChanged(e) {
+        console.log(e.pageIndex+":"+e.pageSize);
+        $.ajax({  
+	     url: '/imageLib',   //请求的是3000端口，应该属于跨域调用，因此dataType用jsonp  
+	     timeout: 5000,  
+		 data:{pageIndex:e.pageIndex,pageSize:e.pageSize},
+	     success: function(data) {  
+	    	 var users = document.getElementById('users').innerHTML;
+	         var names = ['loki', 'tobi', 'jane'];
+	         var html = ejs.render(users, { names: data });
+	         document.body.innerHTML = html;
+	     },  
+	     error: function(jqXHR, textStatus, errorThrown) {  
+	         alert('error ' + textStatus + " " + errorThrown);  
+	     }
+	     });
+    }
+</script>
+</body>
+</html>

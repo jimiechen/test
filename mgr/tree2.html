@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>ContextMenu Tree右键菜单</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="../scripts/boot.js" type="text/javascript"></script>
+    <script src="../scripts/map.js" type="text/javascript"></script>
+</head>
+<body>
+    <input type="button" value="保存" onclick="saveTreeNodes()" style="margin-left:30px;font-weight:bold;"/>
+    <input type="button" value="展开所有" onclick="expandAll()"/>
+    <input type="button" value="折叠所有" onclick="collapseAll()"/><br />      
+    <ul id="tree1" class="mini-tree" url="../getTreeNodes" style="width:200px;padding:5px;" 
+        showTreeIcon="true" textField="text" idField="id" parentField="pid"    
+        contextMenu="#treeMenu" expandOnLoad="true"  resultAsTree="false" allowDrag="true" allowDrop="true" allowLeafDropIn="true" 
+        ongivefeedback="onGiveFeedback"
+        >
+    </ul>
+<ul id="treeMenu" class="mini-contextmenu"  onbeforeopen="onBeforeOpen">        
+    <li>
+		<span name="add" iconCls="icon-add">新增系列节点</span>
+		<ul>
+		    <!-- <li name="add1" onclick="onAddBefore">插入系列节点前</li> -->              
+            <li name="add2" onclick="onAddAfter">新建系列</li>	
+			<li name="add3" onclick="onAddNode">新建产品子节点</li>	             
+		</ul>
+	</li>
+	<li name="edit" iconCls="icon-edit" onclick="onEditNode">编辑节点</li>
+	<li name="remove" iconCls="icon-remove" onclick="onRemoveNode">删除节点</li>        
+</ul>
+    <script type="text/javascript">
+	    function collapseAll() {
+	        var tree = mini.get("tree1");
+	        tree.collapseAll();
+	    }
+	    function expandAll() {
+	        var tree = mini.get("tree1");
+	        tree.expandAll();
+	    }
+    	//限制节点只能平级移动。通过处理GiveFeedback事件，可以实现任意逻辑的拖拽投放效果。
+	    function onGiveFeedback(e) {
+	        var tree = e.sender;
+	        var node = e.node;              //被拖拽的节点
+	        var targetNode = e.targetNode;  //目标投放节点
+	        var effect = e.effect;          //投放方式：add|before|after
+	        var p1 = tree.getParentNode(node);
+	        var p2 = tree.getParentNode(targetNode);
+	        if(node._level==0||effect=='add'){
+	        	e.effect = "no";
+	        }else{
+		        //console.log("前"+mini.encode(node));
+		        node.pid=p2.id;
+		        //console.log("后："+mini.encode(node));
+		        original.put(node.id||node._id,node);
+	        }
+	    }
+    	var original = new Map();
+    	var _index = 1;
+    	function saveTreeNodes(){
+    		if(original.isEmpty()){
+    			return;
+    		}
+            var tree = mini.get("tree1");
+            var data = tree.getData();
+            var json = mini.encode(original.values());
+			console.log(json)
+            var msgid = mini.loading("数据保存中，请稍后......", "保存数据");
+            $.ajax({
+                url: "../addTreeNode",
+                data: { data: json },
+                type: "post",
+                success: function (text) {
+                    mini.hideMessageBox(msgid);
+                    original.clear();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert(jqXHR.responseText);
+                }
+            });
+		
+    	}
+    	function saveNode(node){
+    		var msgid = mini.loading("数据保存中，请稍后......", "保存数据");
+    		var json = mini.encode(node);
+    		console.log('saveNode\t'+json)
+    		$.ajax({
+                url: "../updateNode",
+                data: { data: json },
+                type: "post",
+                success: function (text) {
+                    mini.hideMessageBox(msgid);
+                    original.clear();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert(jqXHR.responseText);
+                }
+            });
+    	}
+    	function checkCache(current){
+    		
+    	}
+        function onAddBefore(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+            var newNode = {text:'系列'+_index};
+            tree.addNode(newNode, "before", node);
+            saveNode(newNode);
+        }
+        function onAddAfter(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+
+            var newNode = {text:'系列'+_index++};
+            var t = tree.addNode(newNode, "after", node);
+            saveNode(newNode);
+        }
+        function onAddNode(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+            var newNode = {text:'产品'+_index++};
+            tree.addNode(newNode, "add", node);
+            saveNode(newNode);
+        }
+        function onEditNode(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+            tree.beginEdit(node);            
+            original.put(node.id||node._id,node);
+        }
+        function onRemoveNode(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+            if (node) {
+                if (confirm("确定删除选中节点?")) {
+                    tree.removeNode(node);
+                    saveNode(node);
+                }
+            }
+        }
+        function onMoveNode(e) {
+            var tree = mini.get("tree1");
+            var node = tree.getSelectedNode();
+
+            alert("moveNode");
+        }
+		function onBeforeOpen(e) {
+		    var menu = e.sender;
+		    var tree = mini.get("tree1");
+		
+		    var node = tree.getSelectedNode();
+		    if (!node) {
+		        e.cancel = true;
+		        return;
+		    }
+		    if (node && node.text == "Base") {
+		        e.cancel = true;
+		        //阻止浏览器默认右键菜单
+		        e.htmlEvent.preventDefault();
+		        return;
+		    }
+		    ////////////////////////////////
+		    //产品只能添加修改
+		    //系列只能新增
+		    var editItem = mini.getbyName("edit", menu);
+		    var removeItem = mini.getbyName("remove", menu);
+		    var addItem = mini.getbyName("add", menu);
+		    
+		    editItem.show();
+		    removeItem.enable();
+		    
+		    console.log(node._level);
+		    
+			if(node._level === 1){
+				addItem.hide();
+			}else{
+				addItem.show();
+			}
+		    /*if (node.id == "forms") {
+		        editItem.hide();
+		    }
+		    if (node.id == "lists") {
+		        removeItem.disable();
+		    }*/
+		}
+		window.alert=function(m){console.log('alert '+m+"  "+new Date())};
+    </script>
+</body>
+</html>

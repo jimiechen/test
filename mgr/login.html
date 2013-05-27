@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>维斯毛衣应用管理系统</title>
+<link rel="stylesheet" type="text/css" href="../css/global.css">
+<link rel="stylesheet" type="text/css" href="../css/mgr.css">
+</head>
+<body>
+   <div class="wmask" style="">
+   <div class="box_content" style="width:428px;margin: 120px auto 0;">
+      <div class="title">
+       <span class="floatleft t_01">管理员登录</span>
+      </div>
+      <!----登录输入----->
+      <div class="loginBox" style="display:block;">
+           <div class="inputBg">
+                <input type="text" id="user_input" class="inputText" value=""/>
+                <label id="userlb" class="placeholder">账号</label>                 
+           </div>
+           <div class="inputBg">
+                <input type="password" id="pasw_input" class="inputText" value=""/>
+                <label id="paswlb" class="pasw_input placeholder">密码</label>                 
+           </div>
+           <div class="loginBtn">
+               <a href="javascript:void(0);" id="loginbtn" class="a1"></a><!--注：登录中按钮样式为a2------->
+               <!----登录中---------->
+               <p id="loginLoading" class="tx1" style="display:none;">登录中...</p>
+               <!----提示2---------->
+               <p id="invalid" style="display:none;">账号或密码错误！</p>
+               <p id="blankinpt" style="display:none;">账号或密码不能为空！</p>
+           </div>
+      </div>
+      <!----登录输入 END----->
+      <!----登录中----->
+      <div class="loginLoading" style="display:none;">
+          <p>登录中...</p>
+      </div>
+      <!----登录中 END----->
+   </div>
+  </div>
+</body>
+</html>
+<script type="text/javascript" src="../scripts/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="../scripts/aes.js"></script>
+<script type="text/javascript">
+_ck = '40c6063f300571ea262079b29511b2c9';
+function log(msg){
+	try{
+		console&&console.log(msg)
+	}catch(e){}
+}
+function inptTxt(_id,_lb,_txt,flag){
+	if(flag){
+		var val = $.trim($('#'+_id).val());;
+		$('#'+_lb).text('');	
+	}else{
+		var val = $.trim($('#'+_id).val());
+		if(val==='')
+			$('#'+_lb).text(_txt);
+	}
+}
+$(document).ready(function() {
+	$('#user_input').focus(function(){
+			var val = $.trim($('#user_input').val());
+			$('#userlb').text('');					
+		}).blur(function(){
+			var val = $.trim($('#user_input').val());
+			if(val==='')
+				$('#userlb').text('账号');
+		});
+	$('#pasw_input').focus(function(){
+		var val = $.trim($('#pasw_input').val());;
+		$('#paswlb').text('');					
+	}).blur(function(){
+		var val = $.trim($('#pasw_input').val());
+		if(val==='')
+			$('#paswlb').text('密码');
+	});
+	$('#loginbtn').bind("click",function(){
+		var _u = $.trim($('#user_input').val());
+		var _p = $.trim($('#pasw_input').val());
+		if(_u.length==0||_p.length==0){
+			$('#blankinpt').show(2000);
+			return;
+		}
+		$('#loginLoading').show();
+		$.post("../loginIn.action", { U2FsdGVkX1: _u, Q6IvVxRBU4o: encrypt(_ck,_p) },
+		 function(data) {
+			$('#loginLoading').hide();
+			 if(data.retCode==0){
+				 location.href='index.html';
+			 }else{
+				 $('#invalid').show(2000);
+			 }
+		 }, 
+		 "json"
+		);
+	})
+});
+</script>
